@@ -89,7 +89,7 @@ class YAxis extends PureComponent {
             y.ticks(numberOfTicks)
 
         const longestValue = ticks
-            .map((value, index) => formatLabel(value, index))
+            .map((value, index) => formatLabel(value, index, ticks.length))
             .reduce((prev, curr) => prev.toString().length > curr.toString().length ? prev : curr, 0)
 
         const extraProps = {
@@ -139,7 +139,7 @@ class YAxis extends PureComponent {
                                                 key={ index }
                                                 y={ y(value) }
                                             >
-                                                {formatLabel(value, index)}
+                                                {formatLabel(value, index, ticks.length)}
                                             </SVGText>
                                         )
                                     })
