@@ -3,17 +3,20 @@ import PropTypes from 'prop-types'
 import { Text, View } from 'react-native'
 import * as d3Scale from 'd3-scale'
 import * as array from 'd3-array'
-import Svg, { G, Text as SVGText } from 'react-native-svg'
+import Svg, { G, Text as SVGText, TSpan } from 'react-native-svg'
 
 class XAxis extends PureComponent {
-
     state = {
         width: 0,
         height: 0,
-    }
+    };
 
     _onLayout(event) {
-        const { nativeEvent: { layout: { width, height } } } = event
+        const {
+            nativeEvent: {
+                layout: { width, height },
+            },
+        } = event
 
         if (width !== this.state.width) {
             this.setState({ width, height })
@@ -38,20 +41,35 @@ class XAxis extends PureComponent {
             .range([ left, width - right ])
 
         if (scale === d3Scale.scaleBand) {
-
-            x
-                .paddingInner([ spacingInner ])
-                .paddingOuter([ spacingOuter ])
+            x.paddingInner([ spacingInner ]).paddingOuter([ spacingOuter ])
 
             //add half a bar to center label
-            return (value) => x(value) + (x.bandwidth() / 2)
+            return value => x(value) + x.bandwidth() / 2
         }
 
         return x
     }
 
-    render() {
+    _getTick({ value, x, index }) {
+        const { splitOnLineBreaks, formatLabel, svg } = this.props
+        const formattedValue = formatLabel(value, index)
 
+        if (splitOnLineBreaks) {
+            return formattedValue.split('\n').map((line, lineIndex) => (
+                <TSpan
+                    key={ line }
+                    textAnchor="middle"
+                    x={ x(value) }
+                    dy={ lineIndex ? svg.fontSize * 1.2 : 0 }>
+                    {line.trim()}
+                </TSpan>
+            ))
+        }
+
+        return formattedValue
+    }
+
+    render() {
         const {
             style,
             scale,
@@ -89,10 +107,7 @@ class XAxis extends PureComponent {
 
         return (
             <View style={ style }>
-                <View
-                    style={{ flexGrow: 1 }}
-                    onLayout={ event => this._onLayout(event) }
-                >
+                <View style={{ flexGrow: 1 }} onLayout={ event => this._onLayout(event) }>
                     {/*invisible text to allow for parent resizing*/}
                     <Text style={{ opacity: 0, fontSize: svg.fontSize }}>
                         {formatLabel(ticks[0], 0)}
@@ -127,7 +142,7 @@ class XAxis extends PureComponent {
                                                 key={ index }
                                                 x={ x(value) }
                                             >
-                                                {formatLabel(value, index)}
+                                                {this._getTick({ value, x, index })}
                                             </SVGText>
                                         )
                                     })
@@ -136,16 +151,15 @@ class XAxis extends PureComponent {
                         </Svg>
                     }
                 </View>
-            </View>
+            </View >
         )
     }
 }
 
 XAxis.propTypes = {
-    data: PropTypes.arrayOf(PropTypes.oneOfType([
-        PropTypes.number,
-        PropTypes.object,
-    ])).isRequired,
+    data: PropTypes.arrayOf(
+        PropTypes.oneOfType([ PropTypes.number, PropTypes.object ]),
+    ).isRequired,
     spacingInner: PropTypes.number,
     spacingOuter: PropTypes.number,
     formatLabel: PropTypes.func,
@@ -153,12 +167,17 @@ XAxis.propTypes = {
         left: PropTypes.number,
         right: PropTypes.number,
     }),
-    scale: PropTypes.oneOf([ d3Scale.scaleTime, d3Scale.scaleLinear, d3Scale.scaleBand ]),
+    scale: PropTypes.oneOf([
+        d3Scale.scaleTime,
+        d3Scale.scaleLinear,
+        d3Scale.scaleBand,
+    ]),
     numberOfTicks: PropTypes.number,
     xAccessor: PropTypes.func,
     svg: PropTypes.object,
     min: PropTypes.any,
     max: PropTypes.any,
+    splitOnLineBreaks: PropTypes.bool,
 }
 
 XAxis.defaultProps = {
@@ -169,6 +188,7 @@ XAxis.defaultProps = {
     xAccessor: ({ index }) => index,
     scale: d3Scale.scaleLinear,
     formatLabel: value => value,
+    splitOnLineBreaks: false,
 }
 
 export default XAxis
