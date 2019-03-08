@@ -96,12 +96,10 @@ class BarChart extends PureComponent {
         }
 
         return data.map((bar, index) => {
-            const x0 = index === 0 ?
-                x(index) :
-                x(index) + x.bandwidth()
-            const x1 = null
-            const y0 = y(0)
-            const y1 = y(index)
+            const x0 = x(index)
+            const x1 = x(index) + x.bandwidth()
+            const y0 = y(index)
+            const y1 = y(0)
             const barHeight = y1 - y0
             const borderRadius = initialBorderRadius * 2 > barHeight ? barHeight / 2 : initialBorderRadius
             const showTopBorder = true
