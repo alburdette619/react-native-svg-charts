@@ -98,7 +98,7 @@ class BarChart extends PureComponent {
         return data.map((bar, index) => {
             const x0 = x(index)
             const x1 = x(index) + x.bandwidth()
-            const y0 = y(index)
+            const y0 = y(yAccessor({ item: bar }))
             const y1 = y(0)
             const barHeight = y1 - y0
             const borderRadius = initialBorderRadius * 2 > barHeight ? barHeight / 2 : initialBorderRadius
@@ -117,14 +117,6 @@ class BarChart extends PureComponent {
             return {
                 bar,
                 path: util.commandsToSvgPath(commands),
-                // path: shape.area()
-                //     .y0(y(0))
-                //     .y1(value => y(value))
-                //     .x((value, _index) => _index === 0 ?
-                //         x(index) :
-                //         x(index) + x.bandwidth())
-                //     .defined(value => typeof value === 'number')
-                //     ([values[index], values[index]]),
             }
         })
     }
