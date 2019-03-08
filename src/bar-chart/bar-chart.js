@@ -6,6 +6,7 @@ import React, { PureComponent } from 'react'
 import { View } from 'react-native'
 import Svg from 'react-native-svg'
 import Path from '../animated-path'
+import util from '../util'
 
 class BarChart extends PureComponent {
 
@@ -76,7 +77,7 @@ class BarChart extends PureComponent {
     }
 
     calcAreas(x, y) {
-        const { horizontal, data, yAccessor } = this.props
+        const { horizontal, data, yAccessor, borderRadius: initialBorderRadius } = this.props
 
         const values = data.map(item => yAccessor({ item }))
 
@@ -90,21 +91,34 @@ class BarChart extends PureComponent {
                     .x0(x(0))
                     .x1(value => x(value))
                     .defined(value => typeof value === 'number')
-                    ([ values[ index ], values[ index ] ]),
+                    ([ values[index], values[index] ]),
             }))
         }
 
-        return data.map((bar, index) => ({
-            bar,
-            path: shape.area()
-                .y0(y(0))
-                .y1(value => y(value))
-                .x((value, _index) => _index === 0 ?
-                    x(index) :
-                    x(index) + x.bandwidth())
-                .defined(value => typeof value === 'number')
-                ([ values[ index ], values[ index ] ]),
-        }))
+        return data.map((bar, index) => {
+            const x0 = x(index)
+            const x1 = x(index) + x.bandwidth()
+            const y0 = y(yAccessor({ item: bar }))
+            const y1 = y(0)
+            const barHeight = y1 - y0
+            const borderRadius = initialBorderRadius * 2 > barHeight ? barHeight / 2 : initialBorderRadius
+            const showTopBorder = true
+            const showBottomBorder = true
+            const commands = util.coordinatesToPathCommands(
+                x0,
+                y0,
+                x1,
+                y1,
+                borderRadius,
+                showTopBorder,
+                showBottomBorder,
+            )
+
+            return {
+                bar,
+                path: util.commandsToSvgPath(commands),
+            }
+        })
     }
 
     calcExtent() {
@@ -114,8 +128,8 @@ class BarChart extends PureComponent {
         const extent = array.extent([ ...values, gridMax, gridMin ])
 
         const {
-            yMin = extent[ 0 ],
-            yMax = extent[ 1 ],
+            yMin = extent[0],
+            yMax = extent[1],
         } = this.props
 
         return [ yMin, yMax ]
@@ -141,12 +155,12 @@ class BarChart extends PureComponent {
         const { height, width } = this.state
 
         if (data.length === 0) {
-            return <View style={ style }/>
+            return <View style={ style } />
         }
 
         const extent = this.calcExtent()
         const indexes = this.calcIndexes()
-        const ticks = array.ticks(extent[ 0 ], extent[ 1 ], numberOfTicks)
+        const ticks = array.ticks(extent[0], extent[1], numberOfTicks)
 
         const xDomain = horizontal ? extent : indexes
         const yDomain = horizontal ? indexes : extent
@@ -159,8 +173,8 @@ class BarChart extends PureComponent {
         const areas = this.calcAreas(x, y)
             .filter(area => (
                 area.bar !== null &&
-            area.bar !== undefined &&
-            area.path !== null
+                area.bar !== undefined &&
+                area.path !== null
             ))
 
         const extraProps = {
@@ -184,7 +198,7 @@ class BarChart extends PureComponent {
                         <Svg style={{ height, width }}>
                             {
                                 React.Children.map(children, child => {
-                                    if(child && child.props.belowChart) {
+                                    if (child && child.props.belowChart) {
                                         return React.cloneElement(child, extraProps)
                                     }
                                 })
@@ -208,7 +222,7 @@ class BarChart extends PureComponent {
                             }
                             {
                                 React.Children.map(children, child => {
-                                    if(child && !child.props.belowChart) {
+                                    if (child && !child.props.belowChart) {
                                         return React.cloneElement(child, extraProps)
                                     }
                                 })
@@ -245,6 +259,8 @@ BarChart.propTypes = {
     yMin: PropTypes.any,
     yMax: PropTypes.any,
     clamp: PropTypes.bool,
+    borderRadius: PropTypes.number,
+    innerBarSpace: PropTypes.number,
 }
 
 BarChart.defaultProps = {
@@ -254,6 +270,8 @@ BarChart.defaultProps = {
     numberOfTicks: 10,
     svg: {},
     yAccessor: ({ item }) => item,
+    borderRadius: 0,
+    innerBarSpace: 0,
 }
 
 export default BarChart
