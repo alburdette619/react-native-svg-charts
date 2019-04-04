@@ -17,9 +17,10 @@ class XAxis extends PureComponent {
                 layout: { width, height },
             },
         } = event
+        const { extraHeight } = this.props
 
         if (width !== this.state.width) {
-            this.setState({ width, height })
+            this.setState({ width, height: height + extraHeight })
         }
     }
 
@@ -178,6 +179,7 @@ XAxis.propTypes = {
     min: PropTypes.any,
     max: PropTypes.any,
     splitOnLineBreaks: PropTypes.bool,
+    extraHeight: PropTypes.number,
 }
 
 XAxis.defaultProps = {
@@ -189,6 +191,7 @@ XAxis.defaultProps = {
     scale: d3Scale.scaleLinear,
     formatLabel: value => value,
     splitOnLineBreaks: false,
+    extraHeight: 0,
 }
 
 export default XAxis
