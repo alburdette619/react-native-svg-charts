@@ -14,7 +14,8 @@ class YAxis extends PureComponent {
 
     _onLayout(event) {
         const { nativeEvent: { layout: { height, width } } } = event
-        this.setState({ height, width })
+        const { extraWidth } = this.props
+        this.setState({ height, width: width + extraWidth })
     }
 
     getY(domain) {
@@ -172,6 +173,7 @@ YAxis.propTypes = {
     scale: PropTypes.func,
     spacingInner: PropTypes.number,
     spacingOuter: PropTypes.number,
+    extraWidth: PropTypes.number,
 }
 
 YAxis.defaultProps = {
@@ -183,6 +185,7 @@ YAxis.defaultProps = {
     scale: d3Scale.scaleLinear,
     formatLabel: value => value && value.toString(),
     yAccessor: ({ item }) => item,
+    extraWidth: 0,
 }
 
 export default YAxis
